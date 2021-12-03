@@ -3,6 +3,11 @@
 #include <string.h>
 
 int state = 0;
+char go_to[3][12][3] = { // 3 columns, 12 rows, and 3 characters max
+        {"1","1","\0","\0","8","\0","\0","\0","\0","\0","\0","\0"},
+        {"2","\0","\0","\0","2","\0","9","\0","\0","\0","\0","\0"},
+        {"3","\0","\0","\0","3","\0","3","10","\0","\0","\0","\0"},
+};
 char parse_table[12][6][4] = {
         {"s5","\0","\0","s4","\0","\0"},
         {"\0","s6","\0","\0","\0","ac"},
@@ -27,13 +32,15 @@ char column[7][3] = {"id", "+", "*", "(", ")", "$"};
 
 #define null NULL
 typedef struct stk{
-    char symbol[4];
+    char tok[4]; // token
+    int state;
     struct stk * next;
 }stack;
 
 stack * create(stack *head, char * sym){
     head = (stack *) malloc(sizeof(struct stk));
-    strcpy(head -> symbol, sym);
+    strcpy(head -> tok, sym);
+    head -> state = 0;
     head -> next = null;
     return head;
 
@@ -47,7 +54,8 @@ stack * push(stack * head, char *sym){
     else{
         stack * new_element = (stack*)malloc(sizeof(struct stk));
         new_element -> next = head;
-        strcpy(new_element -> symbol, sym);
+        strcpy(new_element -> tok, sym);
+        new_element -> state = state;
         head = new_element;
         return head;
     }
@@ -73,7 +81,7 @@ char * check(char symbol){
 }
 void disp(stack * head){
     while(head != null){
-        printf("%s\n", head -> symbol);
+        printf("%s\n", head -> tok);
         head = head -> next;
     }
 }
@@ -109,17 +117,22 @@ int main(){
             continue;
         }
         strcpy(action, check(str[k]));
-        printf("input is: %c action: %s\n", str[k], action);
+
         if(action[0] == 's'){
             if(action[2] == '\0'){
                 state = action[1] - '0';
             }else
                 state = 11;
-//            printf("%d\n", state);
         }else{
             state = action[1] - '0';
-//            printf("%d\n", state);
+
         }
+        if(str[k] != 'i')
+            printf("token is: %c action: %s\n", str[k], action);
+        else
+            printf("token is: id action: %s\n", action);
+
+        printf("state is: %d\n", state);
         k++;
     }
     return 0;
