@@ -22,31 +22,33 @@ char parse_table[12][6][4] = {
         {"\0","r3","r3","\0","r3","r3"},
         {"\0","r5","r5","\0","r5","r5"}
 };
-char rules[6][10] = {{"E->E+T"},
-                     {"E->T"},
-                     {"T->T*F"},
-                     {"T->F"},
-                     {"F->(E)"},
-                     {"F->id"}};
+char rules[6][10] = {{"E > E+T"},
+                     {"E > T"},
+                     {"T > T*F"},
+                     {"T > F"},
+                     {"F > (E)"},
+                     {"F > id"}};
+
 char column[7][3] = {"id", "+", "*", "(", ")", "$"};
 
 #define null NULL
 typedef struct stk{
-    char tok[4]; // token
+    char tok;//char tok[4]; // token
     int state;
     struct stk * next;
 }stack;
 
-stack * create(stack *head, char * sym){
+stack * create(stack *head, char sym){
     head = (stack *) malloc(sizeof(struct stk));
-    strcpy(head -> tok, sym);
-    head -> state = 0;
+    //strcpy(head -> tok, sym);
+    head -> tok = sym;
+    head -> state = state;
     head -> next = null;
     return head;
 
 }
 
-stack * push(stack * head, char *sym){
+stack * push(stack * head, char sym){
     if(head == null){
         head = create(head, sym);
         return head;
@@ -54,7 +56,8 @@ stack * push(stack * head, char *sym){
     else{
         stack * new_element = (stack*)malloc(sizeof(struct stk));
         new_element -> next = head;
-        strcpy(new_element -> tok, sym);
+        //strcpy(new_element -> tok, sym);
+        new_element -> tok = sym;
         new_element -> state = state;
         head = new_element;
         return head;
@@ -79,20 +82,55 @@ char * check(char symbol){
     int col = column_index(symbol);
     return parse_table[state][col];
 }
-void disp(stack * head){
+//void disp(stack * head){
+//    while(head != null){
+//        //printf("%s\n", head -> tok);
+//        head = head -> next;
+//    }
+//}
+
+void print_stack(stack * head){
+    printf("0");
     while(head != null){
-        printf("%s\n", head -> tok);
+        printf("%c%d", head -> tok, head -> state);
         head = head -> next;
     }
+    printf("\n");
 }
 
+stack * reduce(stack * head){
+    //printf("reduction rule: %s\n", rules[state - 1]);
+   // printf("%c becomes %c\n", head -> tok, rules[state - 1][0]);
 
+    pop(&head);
+    int goto_col;
+    if(head != null)
+        goto_col = head -> state;
+    else
+        goto_col = 0;
+
+    char reduced_char = rules[state - 1][0];
+
+    if(reduced_char == 'E')
+        state = atoi(go_to[0][goto_col]);
+    if(reduced_char == 'T')
+       state = atoi(go_to[1][goto_col]);
+    if(reduced_char == 'F')
+       state = atoi(go_to[2][goto_col]);
+    head = push(head, reduced_char);
+    printf("goto(%d, %c)\n", goto_col, reduced_char);
+    printf("stack: ");
+    print_stack(head);
+
+    return head;
+
+}
 
 int main(){
-//    printf("rules:\n");
-//    for (int i = 0; i < 6; ++i) {
-//        printf("%s\n", rules[i]);
-//    }
+    printf("rules:\n");
+    for (int i = 0; i < 6; ++i) {
+        printf("%s\n", rules[i]);
+    }
 //    printf("parsing table:\n");
 //    printf("id\t+\t*\t(\t)\t$\n");
 //    for (int i = 0; i < 11; ++i) {
@@ -104,6 +142,7 @@ int main(){
 //        }
 //        printf("\n");
 //    }
+
     printf("enter the expression you want to reduce:");
 
     char str[20];
@@ -117,23 +156,31 @@ int main(){
             continue;
         }
         strcpy(action, check(str[k]));
-
-        if(action[0] == 's'){
+//        if(!strcmp(action, "\0")) {
+//            setbuf(stdout, 0);
+//            k++;
+//            continue;
+//            printf("null\n");
+//        }
+        printf("input: %c\n", str[k]);
+        if(action[0] == 's'){// if the action is 'shift', push to the stack
             if(action[2] == '\0'){
                 state = action[1] - '0';
-            }else
-                state = 11;
-        }else{
+            }else{
+                state = 11; // in case s11 is encountered
+            }
+            start = push(start, str[k]);
+            printf("shifted to stack\n");
+            k++;
+        }else{  // else if the action is 'reduce', reduce the first (top) token in the stack
+
             state = action[1] - '0';
-
+            start = reduce(start);
+            printf("reduced expression\n");
         }
-        if(str[k] != 'i')
-            printf("token is: %c action: %s\n", str[k], action);
-        else
-            printf("token is: id action: %s\n", action);
+        printf("action: %s\n", action);
 
-        printf("state is: %d\n", state);
-        k++;
+        printf("\n");
     }
     return 0;
 }
