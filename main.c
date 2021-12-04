@@ -126,9 +126,10 @@ int main(){
         printf("%s\n", rules[i]);
     }
     printf("parsing table:\n");
-    printf("id\t+\t*\t(\t)\t$\n");
-    for (int i = 0; i < 11; ++i) {
-        for (int j = 0; j < 7; ++j) {
+    printf("\tid\t+\t*\t(\t)\t$\n");
+    for (int i = 0; i < 12; ++i) {
+        printf("%d\t", i);
+        for (int j = 0; j < 6; ++j) {
             if(parse_table[i][j] == null)
                 continue;
             printf("%s\t", parse_table[i][j]);
@@ -192,6 +193,7 @@ int main(){
         printf("%-10s ", action);
         state = action[1] - '0';
         start = reduce(start);
+        printf("\n");
     }
     return 0;
 }
