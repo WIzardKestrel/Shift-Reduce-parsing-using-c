@@ -42,7 +42,7 @@ typedef struct stk{
 stack * push(stack * head, char sym){
     /// takes a pointer to stack and a symbol character (token) and pushes the symbol to a new element on the stack
     /// uses global variable state///
-    printf("pushed %c%d to stack\n", sym, state);
+    //printf("pushed %c%d to stack\n", sym, state);
     stack * new_element = (stack*)malloc(sizeof(struct stk));
     new_element -> next = head;
     new_element -> tok = sym;
@@ -82,12 +82,22 @@ void print_reversed(stack * head){ // recursion; don't try to understand, just t
 stack * reduce(stack * head){
     ///reduces an expression according to the current state
     //printf("reduction rule: %s\n", rules[state - 1]);
-    printf("reduced %c to %c\n", head -> tok, rules[state - 1][0]);
+    //printf("reduced %c to %c\n", head -> tok, rules[state - 1][0]);
     if(state == 1){
-        while(head -> tok != '(')
-            pop(&head);
+    pop(&head);
+    pop(&head);
+    pop(&head);
 
-    }else
+    }else if(state == 5){
+        pop(&head);
+        pop(&head);
+        pop(&head);
+    }else if(state == 3){
+        pop(&head);
+        pop(&head);
+        pop(&head);
+    }
+    else
         pop(&head);
     int goto_col;
     if(head != null)
@@ -105,27 +115,27 @@ stack * reduce(stack * head){
        state = atoi(go_to[2][goto_col]);
     head = push(head, reduced_char);
     printf("goto(%d, %c)\n", goto_col, reduced_char);
-
     return head;
-
 }
-
+void print_line(char * action, stack * head){
+    return;
+}
 int main(){
     printf("rules:\n");
     for (int i = 0; i < 6; ++i) {
         printf("%s\n", rules[i]);
     }
-//    printf("parsing table:\n");
-//    printf("id\t+\t*\t(\t)\t$\n");
-//    for (int i = 0; i < 11; ++i) {
-//        for (int j = 0; j < 7; ++j) {
-//            if(parse_table[i][j] == null)
-//                continue;
-//            printf("%s\t", parse_table[i][j]);
-//
-//        }
-//        printf("\n");
-//    }
+    printf("parsing table:\n");
+    printf("id\t+\t*\t(\t)\t$\n");
+    for (int i = 0; i < 11; ++i) {
+        for (int j = 0; j < 7; ++j) {
+            if(parse_table[i][j] == null)
+                continue;
+            printf("%s\t", parse_table[i][j]);
+
+        }
+        printf("\n");
+    }
 
     printf("enter the expression you want to reduce:");
 
@@ -135,24 +145,25 @@ int main(){
     char action[20];
     stack * start = null;
     setbuf(stdout, 0);
+
+    printf("stack\t\tinput\t\taction\n");
     while(str[k] != '\0'){
         if(str[k] == ' ' || str[k] == 'd') {
             k++;
             continue;
         }
         strcpy(action, get_symbol_index(str[k]));
-        printf("input: ");
+
+        printf("$");
+        print_reversed(start);
+        printf("\t\t");
+
+        //printf("input: ");
         for (int i = k; i < strlen(str); ++i) {
             printf("%c", str[i]);
-        }
+        }printf("$");
 
-        printf("\naction: %s\n", action);
-//        if(!strcmp(action, "\0")) {
-//
-//            k++;
-//            continue;
-//            printf("null\n");
-//        }
+        printf("\t\t%-s ", action);
 
         if(action[0] == 's'){// if the action is 'shift', push to the stack
             if(action[2] == '\0'){
@@ -162,16 +173,25 @@ int main(){
             }
             start = push(start, str[k]);
             k++;
+            printf("\n");
         }else{  // else if the action is 'reduce', reduce the first (top) token in the stack
-
             state = action[1] - '0'; // state is changed to match the reduction rule
-            start = reduce(start); // expression is reduced according that rule (state)
+            start = reduce(start);  // expression is reduced according that rule (state)
         }
-        printf("stack: ");
-        print_reversed(start);
 //  input: i+i*(i+i)
-        printf("\n\n");
+    printf("\n");
 
+    }
+    while(1){
+        if(action[0] == 'a')
+            break;
+        print_reversed(start);
+        printf("\t\t");
+        strcpy(action, get_symbol_index('$'));
+        printf("$\t\t");
+        printf("%-10s ", action);
+        state = action[1] - '0';
+        start = reduce(start);
     }
     return 0;
 }
