@@ -2,6 +2,112 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct bracket_node {
+	char data;
+	struct bracket_node* next;
+};
+
+void push_para(struct bracket_node** top_ref, int new_data)
+{
+
+	struct bracket_node* new_node
+		= (struct bracket_node*)malloc(sizeof(struct bracket_node));
+
+	if (new_node == NULL) {
+		getchar();
+		exit(0);
+	}
+	new_node->data = new_data;
+	new_node->next = (*top_ref);
+	(*top_ref) = new_node;
+}
+
+int pop_para(struct bracket_node** top_ref)
+{
+	char res;
+	struct bracket_node* top;
+
+	if (*top_ref == NULL) {
+		printf("Stack overflow n");
+		getchar();
+		exit(0);
+	}
+	else {
+		top = *top_ref;
+		res = top->data;
+		*top_ref = top->next;
+		free(top);
+		return res;
+	}
+}
+
+
+int isCorrect(char character1, char character2)
+{
+	if (character1 == '(' && character2 == ')')
+		return 1;
+	else if (character1 == '{' && character2 == '}')
+		return 1;
+	else if (character1 == '[' && character2 == ']')
+		return 1;
+	else
+		return 0;
+}
+
+int BRACKET_balance(char exp[])
+{
+	int i = 0;
+	struct bracket_node* stack = NULL;
+	while (exp[i])
+	{
+
+		if (exp[i] == '{' || exp[i] == '(' || exp[i] == '[')
+			push_para(&stack, exp[i]);
+
+		if (exp[i] == '}' || exp[i] == ')'
+			|| exp[i] == ']') {
+
+			if (stack == NULL)
+				return 0;
+
+			else if (!isCorrect(pop_para(&stack), exp[i]))
+				return 0;
+		}
+		i++;
+	}
+
+	if (stack == NULL)
+		return 1;
+	else
+		return 0; 
+}
+
+int operater_balance(char exp[])
+{
+    int i = 0;
+    while (exp[i] != '\0')
+    {
+        if (exp[i] == '+')
+        {
+            if (exp[i+1] == '*' || exp[i+1] == '+')
+            {
+                return 0;
+            }
+            
+        }else if (exp[i] == '*')
+        {
+            if (exp[i+1] == '*' || exp[i+1] == '+')
+            {
+                return 0;
+            }
+        }
+        i++;
+        
+    }
+    return 1;
+    
+}
+
 int state = 0;
 int stack_num = 1;
 int input_num = 1;
@@ -31,7 +137,7 @@ char rules[6][10] = {{"E > E+T"}, // the syntax grammar
                      {"F > (E)"},
                      {"F > id"}};
 
-char symbols[7][3] = {"id", "+", "*", "(", ")", "$"}; // the first row of the parsing table (used along with the state to get the action from the parse table)
+char symbols[7][3] = {"id", "+", "*", "(", ")", "$"}; // the top row of the parsing table (used along with the state to get the action from the parse table)
 
 #define null NULL // I don't pressing CapsLock
 typedef struct stk{
@@ -67,10 +173,19 @@ char * get_symbol_index(char symbol){
     /// takes a symbol and returns the index of that symbol in the 'symbols' array
     //used along with the state for determining the next action
     int i = 0;
+    char * fail = "\0";
     for (; i < 7; ++i)
         if (symbol == symbols[i][0])
             break;
-    return parse_table[state][i];
+    
+    if (parse_table[state][i] != parse_table[0][1])
+    {
+        //printf("\n(%s)\n",parse_table[state][i]);
+        return parse_table[state][i];
+    }else{
+        return NULL;
+    }
+    
 }
 
 void print_reversed(stack * head){ // recursion; don't try to understand, just trust the code
@@ -124,9 +239,7 @@ stack * reduce(stack * head){
 	 printf("goto(%d, %c)\n", goto_col, reduced_char);
     return head;
 }
-void print_line(char * action, stack * head){
-    return;
-}
+
 int main(){
     printf("rules:\n");
     for (int i = 0; i < 6; ++i) {
@@ -144,15 +257,47 @@ int main(){
         }
         printf("\n");
     }
-
+    
     printf("enter the expression you want to reduce:");
 
-    char str[20];
+    char str[200];
     scanf("%s", str);
     int k = 0;
     char action[20];
     stack * start = null;
     setbuf(stdout, 0);
+    int incorrect = 0;
+    if(BRACKET_balance(str)){
+        ;
+    }else
+    {
+        printf("\nTHE INPUT IS INCORRECT");
+        return 0;
+    }
+    if (operater_balance(str))
+    {
+        ;
+    }else
+    {
+        printf("\nTHE INPUT IS INCORRECT");
+        return 0;
+    }
+	for (int i = 0; i < strlen(str); i++){
+		if (str[i] == ')'){
+			if (str[i + 1] != 'i') {
+				printf("\nTHE INPUT IS INCORRECT");
+				return 0;
+			}
+		}
+		if (str[i] == '(') {
+			if (str[i - 1] != 'd') {
+				printf("\nTHE INPUT IS INCORRECT");
+					return 0;
+			}
+		}
+	}
+    
+    
 
     printf("stack\t\tinput\t\taction\n");
     while(str[k] != '\0'){
@@ -160,6 +305,13 @@ int main(){
             k++;
             continue;
         }
+
+        if (get_symbol_index(str[k]) == NULL)
+        {
+            incorrect = 1;
+            break;
+        }
+        
         strcpy(action, get_symbol_index(str[k]));
 
         printf("0");
@@ -183,9 +335,7 @@ int main(){
             }
             stack_num = 1;
         }
-        
-        
-   
+           
         //printf("input: ");
         for (int i = k; i < strlen(str); ++i) {
             printf("%c", str[i]);
@@ -229,30 +379,37 @@ int main(){
     printf("\n");
 
     }
-    while(1){
-        int s;
-        printf("0");
-        print_reversed(start);
-        
-        printf("\t\t");
-        
-        stack_num = 1;
-        strcpy(action, get_symbol_index('$'));
-        printf("$");
-        for ( s = 11; s >= 0; s--)
-        {
-            printf(" ");
-        }
-        if(action[0] != 'a')
-            printf("Reduce %d ", state);
-        else  if(action[0] == 'a'){
-            printf("Accept\n");
-            break;
+    if (incorrect == 1)
+    {
+        printf("\nTHE INPUT IS INCORRECT");
+    }else
+    {
+    
+        while(1){
+            int s;
+            printf("0");
+            print_reversed(start);
+            
+            printf("\t\t");
+            
+            stack_num = 1;
+            strcpy(action, get_symbol_index('$'));
+            printf("$");
+            for ( s = 11; s >= 0; s--)
+            {
+                printf(" ");
+            }
+            if(action[0] != 'a')
+                printf("Reduce %d ", state);
+            else  if(action[0] == 'a'){
+                printf("Accept\n");
+                break;
 
+            }
+            state = action[1] - '0';
+            start = reduce(start);
+            printf("\n");
         }
-        state = action[1] - '0';
-        start = reduce(start);
-        printf("\n");
     }
     return 0;
 }
