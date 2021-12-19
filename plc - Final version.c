@@ -28,7 +28,7 @@ int pop_para(struct bracket_node** top_ref)
 	struct bracket_node* top;
 
 	if (*top_ref == NULL) {
-		printf("Stack overflow n");
+		//printf("Stack overflow n");
 		getchar();
 		exit(0);
 	}
