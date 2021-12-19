@@ -258,7 +258,7 @@ int main(){
         printf("\n");
     }
     
-    printf("enter the expression you want to reduce:");
+    printf("enter the expression you want to reduce WITHOUT SPACES:");
 
     char str[200];
     scanf("%s", str);
@@ -283,18 +283,22 @@ int main(){
         return 0;
     }
 	for (int i = 0; i < strlen(str); i++){
-		if (str[i] == ')'){
+		if (str[i] == '('){
 			if (str[i + 1] != 'i') {
 				printf("\nTHE INPUT IS INCORRECT");
 				return 0;
 			}
 		}
-		if (str[i] == '(') {
+		if (str[i] == ')') {
 			if (str[i - 1] != 'd') {
 				printf("\nTHE INPUT IS INCORRECT");
 					return 0;
 			}
 		}
+        if(str[i] != '+' && str[i] != '*' && str[i] != 'i' && str[i] != 'd' && str[i] != '(' && str[i] != ')'){
+            printf("\nINPUT IS INCORRECT - illegal character\n");
+            return 0;
+        }
 	}
     
     
